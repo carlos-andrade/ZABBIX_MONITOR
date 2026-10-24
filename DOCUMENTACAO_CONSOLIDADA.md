@@ -626,3 +626,52 @@ Não promover um componente de um estado para o seguinte apenas com base na pres
 A reconciliação permitirá eliminar suposições antigas, identificar serviços que já não existem ou que foram adicionados, detetar divergências de versões e portas, priorizar pendências reais e construir uma linha de base verificável para futuras alterações. Também permitirá distinguir claramente a existência física/lógica do servidor da prova de funcionamento e integração de cada serviço.
 
 **Estado global da reconciliação: PARCIAL — documentação histórica confrontada; verificação ao vivo pendente da execução do script e análise do relatório.**
+
+
+## 14. Evidência visual do dashboard Zabbix — 24 de outubro de 2026
+
+### 14.1 Evidência fornecida
+
+Foi fornecida uma captura de ecrã do dashboard **Global view**, com a interface em português. A captura mostra a versão do frontend **7.0.23** e o painel de informação do sistema indica **“Zabbix está rodando: Não”**. Também é apresentado o aviso de que o servidor Zabbix não está a rodar e que a informação apresentada pode não ser atual.
+
+Outros elementos visíveis na captura:
+- Disponibilidade dos hosts: 0 disponíveis, 0 indisponíveis, 0 mistos e 1 desconhecido.
+- Valores por segundo: “Sem dados”.
+- Problemas atuais: nenhum registo apresentado.
+- O dashboard e a interface web estão acessíveis no momento da captura.
+
+### 14.2 Interpretação técnica
+
+A captura confirma que o **frontend web do Zabbix está acessível** e que a interface indica a versão 7.0.23. Ao mesmo tempo, constitui evidência visual de que, nesse instante, o frontend não reconhecia o servidor Zabbix como estando em execução.
+
+Portanto, a captura **não confirma que a monitorização esteja operacional**. A ausência de problemas listados não demonstra ausência de incidentes, porque os dados podem estar desatualizados. A captura também não prova, por si só, se o serviço está parado, se há uma falha de ligação entre frontend e servidor, se existe um problema na base de dados ou se outra condição impede a verificação.
+
+### 14.3 Diagnóstico seguinte — recolha sem alterações
+
+No Ubuntu Server, recolher primeiro:
+
+```bash
+date -Is
+systemctl status zabbix-server --no-pager -l
+systemctl is-enabled zabbix-server
+journalctl -u zabbix-server -n 100 --no-pager
+```
+
+Verificar depois o frontend e a base de dados, sem reiniciar serviços:
+
+```bash
+systemctl status apache2 --no-pager -l
+systemctl status mysql --no-pager -l
+```
+
+Se a instalação usar MariaDB em vez de MySQL, consultar também `systemctl status mariadb --no-pager -l`. Confirmar os nomes dos serviços existentes antes de interpretar uma resposta de unidade não encontrada.
+
+**Não reiniciar nem alterar configurações antes de analisar o estado e os logs.** Antes de partilhar os resultados, remover credenciais, tokens e outros segredos.
+
+### 14.4 Estado
+
+- Frontend web acessível na captura: **CONFIRMADO VISUALMENTE**.
+- Versão do frontend apresentada: **7.0.23**.
+- Servidor Zabbix operacional na captura: **NÃO CONFIRMADO; o dashboard indica que não está a rodar**.
+- Recolha de métricas e atualização dos dados: **NÃO CONFIRMADAS**.
+- Causa do problema e solução: **PENDENTES DE DIAGNÓSTICO NO SERVIDOR**.
