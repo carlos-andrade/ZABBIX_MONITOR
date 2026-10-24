@@ -1,382 +1,574 @@
-# ZABBIX_MONITOR — DOCUMENTAÇÃO CONSOLIDADA DO PROJETO
+# ZABBIX_MONITOR — DOSSIÊ TÉCNICO CONSOLIDADO E LINHA DO TEMPO
 
-**Documento:** Histórico, arquitetura de referência, inventário conhecido e roadmap  
 **Projeto:** ZABBIX_MONITOR  
 **Repositório:** https://github.com/carlos-andrade/ZABBIX_MONITOR  
+**Documento:** DOCUMENTACAO_CONSOLIDADA.md  
+**Versão documental:** 2.0  
+**Data de consolidação:** 24 de outubro de 2026  
 **Ramo de referência:** main  
-**Última consolidação:** 24 de outubro de 2026  
-**Estado documental:** consolidação inicial; requer validação contínua contra a infraestrutura real
+**Finalidade:** centralizar o histórico recuperável dos chats, as datas das pesquisas e sessões técnicas, a arquitetura discutida, os estados conhecidos, os incidentes e o plano de trabalho.
+
+> **Nota sobre a exatidão histórica:** as datas abaixo são as datas dos registos de conversa que foram recuperados. Não significam que todas as ações propostas tenham sido executadas, nem que o estado observado na data permaneça atual. Quando não existe evidência de conclusão, o estado é marcado como histórico, proposto ou pendente. Este documento consolida o histórico recuperável, não garante a reprodução literal de todas as mensagens de todos os chats.
 
 ---
 
-## 1. Finalidade deste documento
+## 1. Resumo executivo
 
-Este documento reúne, num único ponto de referência, o contexto recuperável das conversas sobre o ZABBIX_MONITOR: objetivos, infraestrutura referida, experiências técnicas, componentes discutidos, decisões de orientação, propostas de integração, problemas históricos e próximos passos.
+O **ZABBIX_MONITOR** pretende evoluir para um ecossistema modular de monitorização, observabilidade e gestão operacional de TI. O Zabbix é o componente central previsto e o Ubuntu Server constitui a infraestrutura-base referida pelo utilizador. A solução deverá monitorizar servidores, serviços, redes, aplicações e dispositivos conectados, detetar falhas, gerar alertas, apresentar métricas e permitir automações controladas.
 
-O documento distingue deliberadamente:
+O trabalho histórico abrangeu quatro linhas principais:
 
-- **Confirmado no repositório:** informação verificada diretamente no GitHub.
-- **Registo histórico:** informação relatada em conversas ou observada num momento anterior, que pode já ter mudado.
-- **Planeado/proposto:** arquitetura ou funcionalidade discutida, mas sem evidência suficiente de implementação completa.
-- **Pendente de validação:** ponto que exige nova inspeção técnica, teste ou evidência reproduzível.
+1. **Zabbix no Ubuntu Server:** instalação, agente, conectividade, configuração de hosts autorizados, logs e testes.
+2. **Alertas e integrações:** testes de email, Postfix, Mailgun, n8n e possíveis notificações por outros canais.
+3. **Contentores e IoT:** Docker Compose, ChirpStack, Mosquitto/MQTT, PostgreSQL e Redis, incluindo conflito histórico da porta 1883.
+4. **Arquitetura, governação e validação:** documentação, segurança, inventário, evidências, roadmap e possível apresentação empresarial.
 
-A consolidação representa o histórico recuperável disponível nesta revisão, não uma garantia de que cada mensagem de todos os chats antigos foi integralmente recuperada. Quando não existe evidência atual, o documento não declara a funcionalidade como concluída.
+Também foram discutidas integrações opcionais com Grafana, proxies, recolha de dados de mercado e bases de dados temporais. Essas propostas não devem ser confundidas com componentes comprovadamente instalados ou integrados.
 
-## 2. Resumo executivo
+## 2. Convenções para interpretar o documento
 
-O ZABBIX_MONITOR tem como objetivo desenvolver um ecossistema modular de monitorização e observabilidade de TI, com o Zabbix como componente central e um servidor Ubuntu como infraestrutura-base. O sistema deverá permitir acompanhar a disponibilidade e o desempenho de servidores, serviços, redes, aplicações e dispositivos conectados, com alertas, visualização, automação e integração IoT quando justificados.
+Os estados são usados de forma consistente:
 
-A intenção é evoluir de uma máquina e serviços reais para uma solução documentada, reproduzível, segura e demonstrável a empresas. O projeto deverá privilegiar evidências técnicas, alterações rastreáveis, validação antes de promoção e separação clara entre serviços existentes e integrações futuras.
+- **CONFIRMADO NO GITHUB:** observado diretamente nos metadados ou ficheiros do repositório.
+- **RELATADO PELO UTILIZADOR:** informação comunicada em conversa, sem verificação independente nesta consolidação.
+- **OBSERVADO NUM SNAPSHOT:** estado de uma saída de terminal num momento específico.
+- **HISTÓRICO:** informação técnica de uma sessão antiga que deve ser novamente verificada.
+- **PROPOSTO:** solução ou configuração recomendada, sem evidência de execução bem-sucedida.
+- **PENDENTE:** necessita de nova recolha, teste ou validação.
+- **VALIDADO:** reservado a resultados acompanhados por evidência suficiente e critérios de aceitação satisfeitos.
 
-## 3. Identidade do projeto e estado do GitHub
+Não se deve interpretar a presença de um serviço em execução como prova de que a sua integração funcional, segurança, persistência ou recuperação foram testadas.
 
-### 3.1 Metadados confirmados
+## 3. Identidade e estado do repositório
 
-Na inspeção do GitHub realizada em 24 de outubro de 2026, foram confirmados os seguintes elementos:
+### 3.1 Estado confirmado em 24 de outubro de 2026
 
-- Repositório público: https://github.com/carlos-andrade/ZABBIX_MONITOR
-- Ramo predefinido: main
-- Primeiro commit: “Initial commit”
-- Ficheiro inicialmente encontrado na árvore: LICENSE
-- Licença declarada: MIT
-- Descrição do repositório registada no GitHub:
+Na inspeção direta ao GitHub em **24-10-2026**, foram confirmados:
+
+- Repositório: https://github.com/carlos-andrade/ZABBIX_MONITOR
+- Visibilidade: pública.
+- Ramo predefinido: `main`.
+- Primeiro commit: `Initial commit`.
+- Licença: MIT.
+- Árvore inicial inspecionada: continha apenas `LICENSE`.
+- README.md: não encontrado na inspeção inicial.
+- Código de monitorização e configurações versionadas: não encontrados na árvore inicial.
+- Proteção do ramo `main`: não ativada na inspeção.
+- Issues: ativadas.
+- Data de criação indicada pelo GitHub: 24-10-2026.
+
+A descrição registada no GitHub é:
 
 > ZABBIX_MONITOR É UM ECOSSISTEMA DE MONITORIZAÇÃO DE TI, BASEADO EM ZABBIX E UBUNTU SERVER. INTEGRA VISUALIZAÇÃO, ALERTAS, AUTOMAÇÃO E IOT PARA ACOMPANHAR INFRAESTRUTURAS, REFORÇAR A SEGURANÇA, PREVENIR INCIDENTES E GARANTIR A CONTINUIDADE OPERACIONAL, COM ARQUITETURA MODULAR E ESCALÁVEL PARA EMPRESAS.
 
-A árvore consultada continha apenas o ficheiro LICENSE. Não foi encontrado um README.md, código de aplicação, inventário de infraestrutura, configuração versionada ou testes nessa inspeção. Este documento é, portanto, a primeira consolidação documental proposta para o repositório; a sua criação não significa que os serviços descritos estejam todos configurados ou integrados.
+A licença MIT está no ficheiro [LICENSE](https://github.com/carlos-andrade/ZABBIX_MONITOR/blob/main/LICENSE). A licença permite uso, modificação e redistribuição segundo as condições ali descritas; não certifica a segurança nem a qualidade técnica do projeto.
 
-### 3.2 Licença
+### 3.2 Registos documentais no GitHub
 
-O ficheiro LICENSE declara a licença MIT e direitos de autor de Carlos Andrade em 2026. A licença permite utilização, modificação e distribuição nos termos definidos no próprio ficheiro. A licença não constitui, por si só, uma validação de segurança, qualidade ou prontidão para produção.
+- **24-10-2026:** criado o documento inicial `DOCUMENTACAO_CONSOLIDADA.md`, commit `746cbe0ca1cc2945ea964145b12a6af49c39d871`.
+- **24-10-2026:** a versão documental foi ampliada para incluir uma linha do tempo datada, mais detalhes históricos e uma distinção explícita entre observações, propostas e pendências. O SHA deste commit deve ser confirmado após a gravação desta revisão.
 
-### 3.3 Governação do ramo principal
+A árvore e os metadados do repositório devem ser novamente inspecionados sempre que se iniciar uma nova fase do projeto.
 
-Na inspeção inicial, o ramo main não estava protegido. Recomenda-se avaliar a proteção do ramo principal, revisão de alterações e verificações automáticas antes de aceitar mudanças relevantes. Esta é uma recomendação, não uma alteração já aplicada.
+## 4. Linha do tempo cronológica das conversas e pesquisas
 
-## 4. Objetivos e âmbito
+As datas seguintes foram recuperadas dos registos de conversas disponíveis. Cada entrada descreve o conteúdo técnico associado à data e indica o nível de certeza.
 
-### 4.1 Objetivos funcionais
+### 21 de maio de 2025 — Atualização do Zabbix no Ubuntu Server
 
-1. Centralizar a monitorização de infraestrutura e serviços.
-2. Recolher métricas, estados, eventos e logs relevantes.
-3. Detetar falhas e anomalias através de triggers e regras verificáveis.
-4. Notificar os responsáveis por canais configurados e testados.
-5. Disponibilizar dashboards e vistas operacionais.
-6. Automatizar tarefas de diagnóstico e resposta de forma controlada.
-7. Integrar, quando necessário, sistemas IoT e telemetria.
-8. Manter documentação operacional, inventário e procedimentos de recuperação.
-9. Preparar uma solução que possa ser demonstrada e adaptada a ambientes empresariais.
+**Tema:** atualização e manutenção do Zabbix.
 
-### 4.2 Princípios de desenvolvimento
+O registo desta conversa tratou de atualização do Zabbix no Ubuntu Server. Foi mencionado um procedimento que incluía:
 
-- Modularidade e separação de responsabilidades.
-- Segurança por defeito e princípio do menor privilégio.
-- Proteção de segredos; nunca guardar palavras-passe, tokens ou chaves privadas no repositório.
-- Reprodutibilidade de instalações e configurações.
-- Alterações pequenas, rastreáveis e com possibilidade de reversão.
-- Validação baseada em evidências, logs e resultados de teste.
-- Documentação explícita de pressupostos, dependências e limitações.
-- Nenhuma integração será considerada concluída apenas porque um contentor está em execução.
-- Nenhum estado histórico será tratado como estado atual sem nova verificação.
+- Fazer backup da base de dados e dos ficheiros de configuração antes da atualização.
+- Usar o repositório apropriado para a versão-alvo do Zabbix.
+- Atualizar os componentes de servidor, frontend e agente.
+- Reiniciar os serviços e verificar o estado após a atualização.
 
-## 5. Infraestrutura conhecida
+O exemplo de repositório mencionado estava associado ao Zabbix 7.0 LTS e Ubuntu 22.04; não se deve inferir que esse procedimento tenha sido executado exatamente dessa forma, nem que a versão atual do sistema seja Ubuntu 22.04.
 
-### 5.1 Servidor Ubuntu
+**Estado:** histórico de orientação; execução e resultado final não confirmados nesta consolidação.
 
-Em conversas anteriores, o utilizador confirmou que possui uma máquina/servidor Ubuntu e esclareceu que o objetivo de apresentar a saída dos comandos era provar a existência dessa infraestrutura, não iniciar imediatamente uma alteração técnica. O nome de host referido em registos anteriores é **ubuntuserver**.
+### 2 de junho de 2025 — Zabbix Agent no Ubuntu Server em máquina virtual
 
-O projeto deverá manter um inventário explícito com, no mínimo:
+**Tema:** agente a monitorizar o próprio servidor.
 
-- Nome do host e função.
-- Versão exata do Ubuntu e kernel.
-- CPU, memória, armazenamento e interfaces de rede.
-- Endereços e portas necessários à operação, evitando publicar dados sensíveis.
-- Serviços instalados e respetivas versões.
-- Serviços ativos, estado de arranque e dependências.
-- Volumes persistentes, política de backup e recuperação.
-- Exposição de rede, firewall e acessos administrativos.
+O utilizador descreveu o host `UBUNTUSERVER`, um Ubuntu Server executado numa máquina virtual. O agente aparecia a escutar em:
 
-**Limitação:** nesta consolidação não foi recolhida uma nova saída do servidor. Por isso, a versão atual do Ubuntu, o estado atual de todos os serviços, a capacidade de hardware e a configuração de rede devem ser confirmados diretamente na máquina.
+- `0.0.0.0:10050`
+- `[::]:10050`
 
-### 5.2 Zabbix Agent — registo histórico
+A saída indicava múltiplos processos `zabbix_agentd`.
 
-Um registo de junho de 2025 indicava que o Zabbix Agent no host ubuntuserver escutava na porta TCP 10050 em IPv4 e IPv6. O mesmo diagnóstico histórico registava rejeições de ligações locais e a configuração de hosts permitidos com o endereço 192.168.60.142. Na altura, a ferramenta zabbix_get não estava disponível.
+**Significado técnico:** a porta 10050 é a porta habitual de escuta do Zabbix Agent clássico. A existência de um socket em escuta confirma apenas que o processo abriu a porta; não prova que o servidor Zabbix esteja autorizado a consultar o agente ou que os itens estejam a ser recolhidos.
 
-Estes dados são pistas para auditoria, não uma afirmação sobre a configuração atual. É necessário verificar a versão e o modo do agente, os parâmetros Server/ServerActive/Hostname, os endereços autorizados, a conectividade a partir do servidor Zabbix e os logs atuais. Não se deve abrir a porta 10050 indiscriminadamente à Internet.
+**Estado:** observação histórica; confirmar versão do agente, configuração e conectividade atuais.
 
-### 5.3 Contentores e ChirpStack — registos históricos
+### 22 de junho de 2025 — Âmbito inicial de monitorização e troubleshooting do agente
 
-Em fevereiro de 2026 foi discutida e tentada uma stack Docker Compose para ChirpStack, com componentes como ChirpStack, PostgreSQL, Redis e Mosquitto. O arranque inicial teve um conflito porque a porta 1883 do host já estava ocupada. Foi sugerido identificar o serviço que ocupava a porta e decidir de forma explícita qual broker MQTT deveria ser usado, em vez de parar serviços sem diagnóstico.
+**Tema:** infraestrutura Ubuntu/Zabbix, hardening e conectividade.
 
-Numa inspeção de terminal mais recente, foi mostrada uma lista de contentores que incluía, pelo menos, um contentor Mosquitto baseado em eclipse-mosquitto:2 e um serviço ChirpStack REST API, ambos apresentados como ativos naquele instante. A saída partilhada estava incompleta; não permite declarar que toda a stack, a persistência, o gateway LoRaWAN ou a integração com Zabbix funcionam corretamente.
+O contexto recuperado indica que o utilizador já usava Ubuntu Server e Zabbix. Entre os tópicos de interesse estavam:
 
-O estado atual deve ser reavaliado com docker ps, docker compose ps, logs relevantes e inspeção das portas e volumes. Não se deve alterar nem reiniciar o ambiente antes de recolher o estado e compreender as dependências.
+- Hardening e segurança.
+- Agentes e templates.
+- Monitorização por SNMP e HTTP.
+- Grafana.
+- Zabbix Proxy e monitorização distribuída.
+- API e automações.
 
-## 6. Componentes tecnológicos discutidos
+No troubleshooting do agente no host `ubuntuserver`, foi observada escuta em TCP 10050 para IPv4 e IPv6. O log do agente rejeitava pedidos locais provenientes de `127.0.0.1`. A configuração de hosts autorizados continha `192.168.60.142), repetido em entradas de configuração.
 
-A tabela abaixo separa o papel previsto do estado comprovado.
+Foi proposta a inclusão de `127.0.0.1` na diretiva `Server`, mantendo o endereço do servidor Zabbix:
 
-| Componente | Papel previsto | Estado documental |
+```ini
+Server=127.0.0.1,192.168.60.142
+```
+
+Também foi sugerida a verificação de `ServerActive`, se a recolha ativa fosse utilizada, e um teste com `zabbix_get`. A ferramenta `zabbix_get) não estava instalada na sessão; a shell sugeriu instalar pacotes relacionados com Zabbix Server/Proxy.
+
+**Cuidado:** o valor `192.168.60.142` é um endereço histórico. Não o reutilizar sem confirmar que ainda corresponde ao servidor Zabbix. Não instalar componentes adicionais apenas para obter uma ferramenta de teste sem primeiro avaliar o pacote apropriado e o papel da máquina.
+
+**Estado:** problema e diagnóstico históricos; correção final não comprovada.
+
+### 9 de julho de 2025 — Testes de alertas por email
+
+**Tema:** cadeia de eventos, triggers e notificações.
+
+Foi descrito um procedimento de teste de alertas por email envolvendo um item de log, uma trigger e um script externo. O objetivo era confirmar que uma condição monitorizada gerava um evento e que esse evento acionava o mecanismo de notificação.
+
+O procedimento deve ser entendido como uma sequência de validação:
+
+1. Confirmar que o item recolhe o dado esperado.
+2. Gerar uma condição de teste controlada.
+3. Confirmar que a trigger muda de estado.
+4. Confirmar a criação do evento e a execução da action.
+5. Verificar a execução do script ou do media type.
+6. Confirmar entrega ao destinatário e inspecionar logs.
+
+**Estado:** teste proposto/documentado; não há prova recuperada de entrega final bem-sucedida.
+
+### 12 de julho de 2025 — Organização da descoberta de nós
+
+**Tema:** duplicação na descoberta de nós.
+
+Foi proposta uma reorganização para evitar duplicação de `zabbix.nodes.discovery`. O registo recuperado não contém detalhe suficiente para afirmar que houve alteração definitiva ou qual ficheiro foi modificado.
+
+**Ação pendente:** se o tema voltar a ser relevante, localizar a configuração atual, identificar a origem da duplicação e validar o resultado antes de alterar regras de descoberta.
+
+### 12 de agosto de 2025 — Proposta de automação com Ansible, Postfix e Mailgun
+
+**Tema:** configuração reproduzível de Zabbix e notificações.
+
+Foi discutida uma proposta YAML/Ansible com os seguintes componentes:
+
+- `zabbix-server-mysql`
+- `zabbix-frontend-php`
+- `zabbix-agent`
+- Postfix como relay SMTP para `[smtp.mailgun.org]:587`
+- n8n em contentor, com a porta 5678
+
+Foi sugerida a execução de um playbook Ansible e a validação do resultado. O registo não confirma a execução bem-sucedida do playbook nem a integração final com Mailgun.
+
+**Estado:** arquitetura/procedimento proposto; implementação não comprovada.
+
+**Requisitos para retomar:** confirmar versão de Ubuntu e Zabbix, variáveis e inventário Ansible, credenciais fora do Git, autenticação SMTP, TLS, logs e um teste de entrega ponta a ponta.
+
+### 19 de agosto de 2025 — IP do servidor Zabbix e ligação do agente
+
+**Tema:** erro de conexão e configuração do agente.
+
+O utilizador corrigiu o endereço IP do servidor Zabbix para `192.168.60.142`. Os parâmetros discutidos foram:
+
+```ini
+Server=127.0.0.1,192.168.60.142
+ServerActive=192.168.60.142
+Hostname=UBUNTUSERVER
+```
+
+Foi relatado o erro `[104] Connection reset by peer`. Foram sugeridos:
+
+- Teste de conectividade com `zabbix_get` na porta 10050, usando a chave `agent.ping`, cujo resultado esperado seria `1`.
+- Inspeção dos logs do agente e do servidor.
+- Verificação de nome de host e correspondência com o host configurado no frontend.
+
+Caminhos de log indicados na conversa:
+
+```text
+/var/log/zabbix/zabbix_agentd.log
+/var/log/zabbix/zabbix_server.log
+```
+
+**Estado:** o IP e os parâmetros são registos históricos; o erro e a resolução final devem ser novamente verificados. Não assumir que o endereço ou o hostname continuam iguais.
+
+### 11 de outubro de 2025 — Zabbix 7.0.17 no Ubuntu 24.04
+
+**Tema:** pacotes instalados.
+
+O utilizador reportou pacotes Zabbix **7.0.17** num Ubuntu **24.04**, incluindo:
+
+- Agent.
+- Server com suporte MySQL.
+- Frontend PHP.
+- Configuração Apache.
+
+Este registo é mais específico que as referências anteriores a Ubuntu 22.04, mas continua a ser uma fotografia histórica. A versão atual do sistema e dos pacotes precisa de ser recolhida diretamente no servidor.
+
+**Estado:** reportado pelo utilizador em 11-10-2025; não revalidado nesta revisão.
+
+### 30 de outubro de 2025 — n8n em Docker com PostgreSQL
+
+**Tema:** automação de fluxos a partir do Zabbix.
+
+Foi discutido n8n em Docker/Ubuntu com PostgreSQL, expondo a porta 5678 e usando um comando de arranque `docker-compose up -d`. O fluxo de referência era:
+
+**Zabbix → n8n → Mailgun e/ou Telegram.**
+
+A ideia era encaminhar eventos do Zabbix para um fluxo de automação que pudesse normalizar, enriquecer e encaminhar notificações.
+
+**Estado:** arquitetura proposta; a execução, a segurança da interface n8n e a integração funcional não foram confirmadas.
+
+### 23 de fevereiro de 2026 — ChirpStack, Docker Compose e MQTT
+
+**Tema:** stack LoRaWAN e integração com Zabbix/n8n.
+
+Foi discutida uma stack Docker Compose para ChirpStack em Ubuntu, com serviços como:
+
+- ChirpStack.
+- PostgreSQL.
+- Redis.
+- Mosquitto.
+
+O primeiro arranque falhou porque a porta do host `0.0.0.0:1883/tcp` já estava ocupada. A situação indicava um conflito de porta com um serviço já em escuta, mas não autorizava parar serviços sem descobrir primeiro qual processo ou contentor era o proprietário da porta.
+
+Mais tarde, o registo da conversa indicou que a stack tinha arrancado. A saída de `docker ps` mostrava os serviços ChirpStack, REST API, bridges de gateway, Redis, PostgreSQL e Mosquitto em execução. As portas referidas incluíam:
+
+- `1883/TCP`: MQTT interno no cenário descrito.
+- `8080` e `8090`: serviços/API do ChirpStack no mapeamento discutido.
+- `1700/UDP): tráfego de gateway referido.
+- `3001): bridge/serviço referido na saída.
+
+Foi recomendado manter o broker MQTT interno na rede Docker, com o endereço de serviço:
+
+```text
+tcp://mosquitto:1883
+```
+
+Foi indicado como exemplo de tópico de uplink:
+
+```text
+application/{{application_id}}/device/{{dev_eui}}/event/up
+```
+
+A integração proposta era receber eventos MQTT e encaminhá-los para consumidores como n8n e/ou integrações de Zabbix, com alertas por Postfix/Mailgun.
+
+**Interpretação correta:** o registo indica que uma stack foi apresentada como Running naquele momento. Não comprova, por si só, que gateway e dispositivo LoRaWAN tenham enviado mensagens reais, que a persistência tenha sido testada, que os tópicos estejam autorizados corretamente ou que os alertas estejam integrados de ponta a ponta.
+
+**Pendências de segurança e operação:** confirmar o serviço que ocupa a porta 1883 no host; evitar exposição pública desnecessária do MQTT; verificar autenticação, ACLs, redes Docker, volumes, healthchecks, backups e logs; testar uma mensagem de ponta a ponta.
+
+### 24 de outubro de 2026 — Inventário da Máquina 02 e reconhecimento do servidor
+
+**Tema:** provar a existência da infraestrutura e documentar o estado antes de intervir.
+
+O utilizador esclareceu que a finalidade era demonstrar que possui uma máquina/servidor Ubuntu, e não começar por alterar a infraestrutura.
+
+O contexto recuperado da sessão de 24-10-2026 refere uma stack Docker Compose denominada `chirpstack-docker`, com ChirpStack, Mosquitto, Redis e PostgreSQL. A lista de serviços ativos reportada incluía:
+
+- `zabbix-agent`
+- `zabbix-server`
+- Apache
+- Dovecot
+- MySQL
+- PostgreSQL
+- Redis
+- BIND
+- Mosquitto
+
+Também foram referidos os serviços e portas do ChirpStack e a porta 10050 do Zabbix Agent. O primeiro diagnóstico Docker foi afetado por permissões; foram pedidos comandos com `sudo`, nomeadamente:
+
+```bash
+sudo docker ps -a
+sudo docker compose ls -a
+```
+
+Foi relatado que um inventário da Máquina 02 tinha sido preparado noutro repositório, **API_CARLOS**, numa pull request #13, com o caminho `docs/INFRAESTRUTURA_MAQUINA_02.md` e commit `da2068378ed48834863a8de5bb3df15be540d932`. O registo indicava que a PR ainda não estava integrada. A inspeção não autorizava alterações a serviços; o estado foi descrito como NO-GO para alterações públicas/operacionais até haver validação.
+
+Na mesma data foi criado o repositório ZABBIX_MONITOR, cuja árvore inicial foi inspecionada. Na inspeção, o repositório continha apenas `LICENSE`; não havia README.md nem diretórios técnicos.
+
+**Decisão de trabalho:** reconhecer, inventariar e documentar antes de modificar. Não reiniciar, remover ou reconfigurar serviços sem snapshot, dependências identificadas e autorização operacional clara.
+
+### 24 de outubro de 2026 — Documento consolidado inicial
+
+Foi criado `DOCUMENTACAO_CONSOLIDADA.md` para centralizar o contexto recuperável do projeto, com o commit:
+
+```text
+746cbe0ca1cc2945ea964145b12a6af49c39d871
+```
+
+A revisão atual amplia esse documento com a linha do tempo, os detalhes de troubleshooting recuperados e as limitações de evidência.
+
+## 5. Inventário consolidado de componentes e estado
+
+| Componente | Evidência histórica | Estado correto para planeamento |
 |---|---|---|
-| Ubuntu Server | Base de infraestrutura | Existência confirmada pelo utilizador; versão atual por verificar |
-| Zabbix Server/Agent | Monitorização e alertas | Zabbix referido como existente; versões e estado atuais por validar |
-| MySQL | Base de dados possível para Zabbix, conforme instalação | Discutido em contexto de arquitetura; estado atual por verificar |
-| Grafana | Dashboards e visualização complementar | Proposto; integração completa não comprovada |
-| Postfix | Transporte de correio eletrónico | Discutido como componente de notificações; estado atual por verificar |
-| Mailgun | Entrega de email através de serviço externo | Proposto como opção complementar; integração não comprovada |
-| n8n | Automação de fluxos de trabalho | Proposto; integração não comprovada |
-| Docker / Docker Compose | Isolamento e execução de serviços adicionais | Utilização de contentores observada em registos; configuração integral por auditar |
-| MQTT / Mosquitto | Transporte de mensagens de telemetria | Contentor Mosquitto observado num snapshot; integração funcional por validar |
-| ChirpStack | Gestão de rede LoRaWAN | Serviços discutidos e alguns contentores observados; operação ponta a ponta por validar |
-| PostgreSQL / Redis | Dependências possíveis para a stack ChirpStack | Incluídos na arquitetura proposta; estado atual por verificar |
-| TimescaleDB / InfluxDB | Armazenamento temporal para dados especializados | Proposta histórica para dados de mercado; não assumir implementação |
-| Python | Coletores, verificações e automações específicas | Proposto para integrações e recolha de dados; scripts operacionais não comprovados |
-| Squid / Nginx / Zabbix Proxy | Componentes possíveis para proxy, acesso ou monitorização distribuída | Discutidos em arquitetura mais ampla; não fazem parte do núcleo confirmado |
+| Ubuntu Server | Utilizador confirmou a existência do servidor; host referido como `ubuntuserver`/`UBUNTUSERVER` | Existência reportada; versão e configuração atuais a recolher |
+| Zabbix Agent | Escuta em 10050 e logs de rejeição em 2025 | Revalidar configuração, conectividade e versão |
+| Zabbix Server | Pacotes 7.0.17 reportados em 2025; serviço reportado ativo em 2026 | Revalidar saúde, versão, base de dados e frontend |
+| MySQL | Pacotes/serviço reportados em sessões anteriores | Revalidar instância, versão, utilização e backups |
+| Apache / frontend PHP | Pacotes reportados em 2025; Apache reportado ativo em 2026 | Revalidar frontend e configuração TLS |
+| Postfix | Discutido como relay de notificações | Integração atual não comprovada |
+| Mailgun | Relay SMTP proposto em 2025 | Credenciais e entrega a validar |
+| n8n | Docker/porta 5678 discutidos em 2025 | Estado atual não confirmado |
+| Grafana | Parte do âmbito desejado de dashboards | Instalação/integração não confirmada nesta revisão |
+| Docker / Compose | Stack de ChirpStack e serviços reportada | Recolher snapshot atual, volumes, redes e versões |
+| Mosquitto | Conflito histórico de 1883; serviço reportado ativo em 2026 | Broker e exposição de portas a auditar |
+| ChirpStack | Stack apresentada como Running em fevereiro de 2026; API reportada em 2026 | Validar operação LoRaWAN ponta a ponta |
+| PostgreSQL / Redis | Dependências da stack discutida e serviços reportados em 2026 | Confirmar versões, persistência e uso real |
+| BIND / Dovecot | Serviços reportados ativos na Máquina 02 em 2026 | Inventariar finalidade, exposição e manutenção |
+| Zabbix Proxy | Discutido como opção para monitorização distribuída | Não assumir instalação |
+| Squid / Nginx | Discutidos em cenários de proxy/web | Não assumir instalação |
+| Python / Ansible | Propostos para coletores e instalação reproduzível | Playbooks/scripts não comprovados nesta consolidação |
+| TimescaleDB / InfluxDB | Propostos para séries temporais especializadas | Arquitetura opcional, não requisito do núcleo |
 
-A seleção final deverá evitar componentes redundantes. Cada serviço precisa de uma justificação, responsável, dependências, estratégia de atualização, política de backup e teste de aceitação.
+## 6. Arquitetura funcional de referência
 
-## 7. Arquiteturas e integrações discutidas
+### 6.1 Núcleo de monitorização
 
-### 7.1 Monitorização central
+**Hosts/serviços → agentes e verificações → Zabbix Server → itens/triggers/eventos → notificações e dashboards.**
 
-Fluxo de referência:
+O desenho final depende da versão do Zabbix, do tipo de agente, da topologia de rede e da base de dados real. A configuração do agente deve permitir apenas os servidores autorizados, e a porta 10050 não deve ser exposta indiscriminadamente à Internet.
 
-1. Hosts e serviços produzem métricas e estados.
-2. Agentes, verificações de rede ou integrações recolhem os dados.
-3. O Zabbix Server processa itens, triggers, eventos e notificações.
-4. Dashboards apresentam o estado operacional.
-5. Procedimentos de resposta orientam o diagnóstico e a recuperação.
+### 6.2 Notificações
 
-Este é o modelo funcional de referência. A topologia concreta, a base de dados, os proxies e os métodos de recolha dependem do inventário real.
+Fluxo de referência discutido:
 
-### 7.2 Notificações por email
+**Zabbix → action/media type ou script controlado → Postfix/relay SMTP → Mailgun, quando configurado → destinatário.**
 
-Postfix e Mailgun foram discutidos como componentes possíveis para entrega de alertas. A configuração deverá definir claramente o papel de cada um, evitando duplicação de relay ou caminhos de envio difíceis de diagnosticar.
+O n8n pode ser uma camada de orquestração alternativa ou complementar:
 
-Os testes deverão confirmar: evento de teste, execução da ação, autenticação SMTP, aceitação pelo relay, entrega ao destinatário e registos de erro. SPF, DKIM e DMARC são aspetos de configuração do domínio remetente quando aplicáveis. Credenciais SMTP devem ficar fora do Git, em armazenamento de segredos ou ficheiros protegidos.
+**Zabbix → webhook → n8n → serviço de notificação.**
 
-Em julho de 2025 foi proposto um artefacto de teste de email, com referência a um log em /tmp/log_teste_alerta_zabbix.txt, um item, uma trigger, uma action e validação nos logs de email. O registo disponível não comprova que esse teste tenha sido executado com sucesso; deve ser tratado como procedimento proposto até existir evidência.
+Não se deve criar caminhos duplicados sem necessidade. A arquitetura final precisa de definir quem envia, quem autentica, como se faz retry e onde se consultam os logs.
 
-### 7.3 Automação com n8n
+### 6.3 IoT e LoRaWAN
 
-O n8n foi considerado para coordenar fluxos entre alertas, serviços externos e operações automatizadas. A automação deverá começar com ações de baixo risco, registar entradas e resultados, limitar permissões e impedir ciclos de alertas ou ações repetidas. Ações destrutivas ou que afetem produção devem exigir controlo adicional.
+**Dispositivo → gateway → ChirpStack → MQTT/Mosquitto → consumidor/automação → persistência e/ou alerta.**
 
-### 7.4 IoT, MQTT e LoRaWAN
+A configuração real depende da região LoRaWAN, dos gateways, das chaves e dos tópicos utilizados. A hipótese EU868 foi mencionada anteriormente, mas tem de ser confirmada no equipamento e na configuração. A conectividade MQTT não prova, por si só, que a receção de uplinks está correta.
 
-A arquitetura de referência discutida foi:
+### 6.4 Dados de mercado — linha opcional separada
 
-**Dispositivo → gateway LoRaWAN → ChirpStack → MQTT → consumidores de dados e persistência.**
+Em agosto de 2025 foi discutida uma arquitetura especializada com:
 
-Mosquitto foi considerado broker MQTT. PostgreSQL e Redis foram discutidos como dependências da stack ChirpStack. A integração futura com Zabbix, n8n, Postfix ou Mailgun deve ser feita por interfaces explícitas e testadas.
+- Coletores Python.
+- TimescaleDB para séries temporais como candles, VWAP e GAP.
+- InfluxDB para ticks/telemetria em tempo real.
+- Grafana para visualização.
+- Zabbix para monitorização de disponibilidade dos coletores e serviços.
 
-Parâmetros como região LoRaWAN, configuração de gateway, plano de frequências, RX2 e credenciais dependem do equipamento e da região de operação. A configuração europeia EU868 foi mencionada como hipótese de trabalho, não como instalação validada. É necessário verificar a região e a configuração efetivas antes de ligar gateways ou dispositivos.
+Esta linha deve ser tratada como integração opcional, separada do âmbito essencial da monitorização de infraestrutura. Exige fontes autorizadas, regras de retenção e validação da qualidade dos dados.
 
-### 7.5 Dados de mercado — proposta separada
+## 7. Segurança, fiabilidade e operação
 
-Em agosto de 2025 foi discutida uma arquitetura opcional para recolha de dados de mercado, com coletores Python, TimescaleDB para séries como candles/VWAP/GAP, InfluxDB para ticks em tempo real, Grafana para visualização e Zabbix para alertas de disponibilidade. Esta linha é uma proposta de integração especializada, não requisito obrigatório do núcleo de monitorização empresarial.
+Os seguintes pontos são requisitos de projeto, não resultados já auditados:
 
-Caso seja retomada, deverá ter limites claros de âmbito, fontes de dados autorizadas, regras de retenção, qualidade dos dados e separação dos dados de negócio dos dados operacionais do Zabbix.
+1. **Privilégios mínimos:** serviços e utilizadores devem ter apenas as permissões necessárias.
+2. **Firewall:** abrir apenas portas justificadas e para origens autorizadas.
+3. **Zabbix Agent:** validar `Server`, `ServerActive`, `Hostname`, modo do agente e correspondência do host.
+4. **MQTT:** evitar exposição pública sem necessidade; configurar autenticação, ACLs e redes apropriadas.
+5. **Segredos:** nunca guardar passwords, tokens, chaves ou credenciais SMTP no Git.
+6. **TLS:** proteger interfaces e integrações conforme a exposição e o risco.
+7. **Logs:** definir localização, rotação, retenção e remoção de dados sensíveis.
+8. **Persistência:** confirmar volumes e backups das bases de dados e serviços de estado.
+9. **Recuperação:** testar restauro, não apenas criação de backups.
+10. **Atualizações:** documentar versões e janelas de manutenção.
+11. **Observabilidade do próprio sistema:** monitorizar disco, memória, filas, processos, conectividade, base de dados e entrega de alertas.
+12. **Alterações controladas:** capturar o estado antes de qualquer alteração e manter rollback documentado.
 
-### 7.6 Proxy, web e monitorização distribuída — proposta histórica
+## 8. Runbooks e testes propostos
 
-Também foram discutidos Squid, Nginx, Postfix, Zabbix Server/Proxy, logs, firewall e SSL. Não há evidência suficiente nesta consolidação para afirmar que estes componentes tenham sido instalados como uma stack integrada. A adoção deve depender de requisitos concretos, não da mera possibilidade técnica.
+### 8.1 Recolha inicial de estado
 
-## 8. Segurança e operação
+Executar de forma controlada e guardar saídas sem segredos:
 
-A implementação deve estabelecer, documentar e testar os seguintes controlos:
+```bash
+hostnamectl
+cat /etc/os-release
+uname -r
+systemctl --type=service --state=running
+ss -lntup
+sudo docker ps -a
+sudo docker compose ls -a
+```
 
-- Acesso administrativo limitado e autenticação forte.
-- Firewall com exposição mínima das portas necessárias.
-- Separação entre redes de administração, serviços e dispositivos, quando aplicável.
-- Segredos fora do repositório e sem exposição em logs.
-- TLS para interfaces e integrações quando aplicável.
-- Atualizações planeadas de sistema operativo, Zabbix, imagens e dependências.
-- Backups consistentes de base de dados, configuração, volumes e ficheiros necessários à recuperação.
-- Testes periódicos de restauro; a existência de um backup sem teste de restauro não prova recuperabilidade.
-- Sincronização horária e retenção adequada de logs.
-- Monitorização do próprio sistema de monitorização: espaço em disco, base de dados, filas, processos, conectividade e envio de alertas.
-- Registo de alterações, incidentes, causa-raiz e ações corretivas.
+Os comandos podem exigir privilégios e devem ser executados no servidor correto. Antes de partilhar logs, remover endereços públicos sensíveis, credenciais, tokens e dados pessoais.
 
-Não foram confirmados nesta revisão resultados atuais de auditoria de segurança, backup/restauro, recuperação de desastre ou testes de carga.
+### 8.2 Diagnóstico do Zabbix Agent
 
-## 9. Método de validação e evidências
+Verificar configuração e logs atuais antes de editar:
 
-Uma funcionalidade só deve ser marcada como concluída quando existir evidência verificável. Para cada componente, registar:
+```bash
+sudo systemctl status zabbix-agent --no-pager
+sudo journalctl -u zabbix-agent --since "24 hours ago"
+sudo ss -lntp | grep ':10050'
+```
 
-1. Requisito e finalidade.
-2. Versão e configuração relevante, sem segredos.
-3. Comando ou procedimento de teste.
-4. Resultado observado e timestamp.
-5. Logs ou saída relevante, com dados sensíveis removidos.
-6. Critério de aceitação e resultado PASS/FAIL.
-7. Limitações conhecidas e ação seguinte.
-8. Referência ao commit que introduziu a alteração.
+Os caminhos e nomes dos serviços podem variar com a versão e o tipo de agente. Se `zabbix_get` for necessário, instalar apenas o pacote cliente adequado à distribuição e versão, depois de confirmar o objetivo e as dependências.
 
-Estados recomendados:
+O teste `agent.ping` deve ser executado a partir de uma origem autorizada. Resultado esperado do item de teste: `1`. Se ocorrer reset ou rejeição, verificar o log do agente, a origem do pedido, a diretiva `Server`, firewall e correspondência do host.
 
-- **POR FAZER:** não implementado.
-- **EM IMPLEMENTAÇÃO:** alterações em curso.
-- **PENDENTE DE VALIDAÇÃO:** implementação alegada ou parcial sem evidência suficiente.
-- **VALIDADO:** critérios de aceitação satisfeitos e evidências registadas.
-- **BLOQUEADO:** impedimento identificado, com causa e ação de desbloqueio.
+### 8.3 Diagnóstico Docker/MQTT/ChirpStack
 
-Um contentor em estado Up, um serviço instalado ou uma porta aberta não demonstram, isoladamente, que a função de negócio está operacional.
+Antes de mudar a stack:
 
-## 10. Roadmap consolidado
+```bash
+sudo docker ps -a
+sudo docker compose ls -a
+sudo ss -lntup | grep ':1883'
+```
 
-### Fase 0 — Baseline e inventário
+Depois, identificar o projeto Compose, as redes e volumes, consultar logs de cada serviço e determinar qual processo ocupa a porta. Não parar um broker nem remover volumes sem compreender as dependências e confirmar a existência de backup.
 
-- Recolher estado atual do Ubuntu e do host ubuntuserver.
-- Capturar versões, serviços, contentores, portas, volumes e utilização de recursos.
-- Confirmar versão e arquitetura do Zabbix.
-- Registar o estado atual antes de alterar qualquer serviço.
-- Classificar factos atuais, histórico e hipóteses.
+### 8.4 Teste de alerta por email
 
-**Critério de saída:** inventário datado, reprodutível e sem segredos.
+O teste de aceitação deve documentar:
+
+- Evento de teste gerado.
+- Item e trigger que produziram o evento.
+- Action/media type acionado.
+- Resultado de autenticação SMTP e resposta do relay.
+- Entrega recebida na caixa de destino.
+- Logs e timestamp de cada etapa.
+- Resultado final PASS/FAIL e correção necessária.
+
+O caminho `/tmp/log_teste_alerta_zabbix.txt` foi mencionado num procedimento histórico. A existência atual desse ficheiro não foi confirmada.
+
+### 8.5 Teste MQTT
+
+- Confirmar broker e rede corretos.
+- Confirmar credenciais/ACLs.
+- Subscrever ao tópico correto com um cliente de teste autorizado.
+- Produzir uma mensagem de teste ou uplink real.
+- Confirmar receção, payload, timestamp e consumidor seguinte.
+- Confirmar que a falha de um consumidor não compromete a persistência nem provoca alertas em ciclo.
+
+### 8.6 Evidências
+
+Cada teste deve incluir requisito, versão, comando/procedimento, data e hora, resultado, logs sanitizados, critério de aceitação, estado PASS/FAIL e commit associado.
+
+## 9. Roadmap consolidado e critérios de saída
+
+### Fase 0 — Baseline atual
+**Tarefas:** recolher versão Ubuntu/kernel, hardware, serviços, contentores, redes, volumes, portas, versões Zabbix e estado de bases de dados.  
+**Saída:** inventário datado e reproduzível.
 
 ### Fase 1 — Documentação e governação
+**Tarefas:** README.md, decisões de arquitetura, regras de versionamento, segurança, runbooks e proteção do ramo main.  
+**Saída:** documentação coerente e processo de mudança definido.
 
-- Manter este documento como histórico técnico consolidado.
-- Criar README.md com uma apresentação curta e ligação para esta documentação.
-- Definir convenções para commits, alterações, testes e incidentes.
-- Avaliar proteção do ramo main e validações automáticas.
-- Definir onde ficam os runbooks e os registos de evidência.
+### Fase 2 — Núcleo Zabbix
+**Tarefas:** validar servidor, frontend, base de dados, agente, hosts, itens, triggers e histórico.  
+**Saída:** recolha ponta a ponta demonstrada num host de teste.
 
-**Critério de saída:** documentação coerente e processo de alteração definido.
+### Fase 3 — Alertas
+**Tarefas:** definir caminho de envio, testar SMTP/relay, confirmar entrega e documentar falhas.  
+**Saída:** alerta recebido e evidência registada.
 
-### Fase 2 — Validar o núcleo Zabbix
-
-- Confirmar saúde do servidor, agente(s), base de dados e frontend.
-- Validar conectividade e parâmetros de hosts autorizados.
-- Testar itens, triggers, eventos e histórico de dados.
-- Rever logs e capacidade de armazenamento.
-
-**Critério de saída:** monitorização ponta a ponta comprovada num host de teste.
-
-### Fase 3 — Alertas e email
-
-- Definir o percurso de envio e a função de cada serviço de email.
-- Validar autenticação e configuração do remetente.
-- Executar um teste controlado de trigger/action/entrega.
-- Documentar falhas, retentativas e procedimento de diagnóstico.
-
-**Critério de saída:** alerta recebido e evidência guardada.
-
-### Fase 4 — Dashboards e operação
-
-- Definir indicadores operacionais prioritários.
-- Decidir se Grafana acrescenta valor face ao frontend Zabbix para cada caso.
-- Criar dashboards com fonte, unidades e intervalos claros.
-- Definir retenção, permissões e revisão periódica.
-
-**Critério de saída:** dashboards úteis com dados verificados.
+### Fase 4 — Dashboards
+**Tarefas:** definir KPIs operacionais, decidir o papel de Grafana, configurar permissões e retenção.  
+**Saída:** dashboards com dados confirmados e unidades explícitas.
 
 ### Fase 5 — Docker, MQTT e ChirpStack
+**Tarefas:** reconciliar Compose, portas, redes, volumes, healthchecks, logs e teste de mensagem real.  
+**Saída:** mensagem rastreada da origem ao consumidor esperado.
 
-- Inspecionar a stack atual antes de qualquer mudança.
-- Resolver de forma documentada conflitos de portas.
-- Validar volumes, reinício, persistência, healthchecks e logs.
-- Confirmar o percurso real de uma mensagem MQTT.
-- Validar gateway e dispositivo LoRaWAN antes de declarar integração ponta a ponta.
+### Fase 6 — Automação n8n
+**Tarefas:** escolher um fluxo de baixo risco, limitar permissões, controlar repetição, logs e erros.  
+**Saída:** fluxo repetível e auditável.
 
-**Critério de saída:** mensagem de teste rastreada desde a origem até ao consumidor esperado.
-
-### Fase 6 — Automação
-
-- Selecionar um caso de uso de baixo risco.
-- Definir permissões, deduplicação, limites, logs e tratamento de falhas.
-- Testar em ambiente controlado.
-- Exigir aprovação adicional para operações destrutivas.
-
-**Critério de saída:** fluxo reproduzível, auditável e com falhas controladas.
-
-### Fase 7 — Segurança, backup e recuperação
-
-- Rever acessos, firewall, TLS e segredos.
-- Definir política de backup e retenção.
-- Testar restauro.
-- Preparar runbooks de incidentes e recuperação.
-
-**Critério de saída:** controlos documentados e testes de recuperação bem-sucedidos.
+### Fase 7 — Segurança e recuperação
+**Tarefas:** rever acessos, firewall, TLS, segredos, backup e restauro.  
+**Saída:** controlos documentados e restauro testado.
 
 ### Fase 8 — Demonstração empresarial
+**Tarefas:** apresentar arquitetura, inventário, um incidente simulado, deteção, notificação e diagnóstico.  
+**Saída:** demonstração reproduzível, distinguindo funcionalidades validadas de planeadas.
 
-- Preparar arquitetura e inventário atualizados.
-- Demonstrar um incidente de teste, a deteção, o alerta e o diagnóstico.
-- Distinguir funcionalidades validadas de funcionalidades futuras.
-- Documentar pré-requisitos, limites, manutenção e modelo de implantação.
+## 10. Pendências prioritárias
 
-**Critério de saída:** demonstração repetível com evidência técnica.
+- [ ] Recolher um snapshot atualizado do servidor Ubuntu.
+- [ ] Confirmar a versão atual do Ubuntu e do Zabbix.
+- [ ] Confirmar estado do Zabbix Server, Agent, frontend e base de dados.
+- [ ] Revalidar os parâmetros do agente e o endereço do servidor autorizado.
+- [ ] Verificar a porta 10050 e as regras de firewall.
+- [ ] Capturar a lista completa dos contentores, redes, volumes e portas.
+- [ ] Identificar a origem atual do conflito histórico da porta 1883, se ainda existir.
+- [ ] Validar persistência e saúde da stack ChirpStack/Mosquitto/PostgreSQL/Redis.
+- [ ] Confirmar se Grafana, Postfix, Mailgun e n8n estão instalados e integrados.
+- [ ] Executar teste de alerta ponta a ponta.
+- [ ] Definir e testar backups/restauro.
+- [ ] Rever proteção do ramo main e verificações automáticas.
+- [ ] Criar/atualizar README.md para apontar para este documento.
+- [ ] Só marcar componentes como VALIDADO depois de anexar evidência.
 
 ## 11. Estrutura documental recomendada
 
-A estrutura abaixo é uma proposta de organização futura, não uma descrição dos diretórios que já existiam no momento da inspeção inicial:
+Esta é uma proposta para evolução do repositório, não a árvore que foi encontrada na inspeção inicial:
 
-    ZABBIX_MONITOR/
-    ├── README.md
-    ├── DOCUMENTACAO_CONSOLIDADA.md
-    ├── GOVERNANCA/
-    │   ├── PRINCIPIOS.md
-    │   └── DECISOES_ARQUITETURA.md
-    ├── DOCUMENTACAO/
-    │   ├── INFRAESTRUTURA.md
-    │   ├── ARQUITETURA.md
-    │   └── INVENTARIO_SERVICOS.md
-    ├── INSTALACAO/
-    ├── CONFIGURACOES/
-    ├── MONITORIZACAO/
-    ├── ALERTAS/
-    ├── AUTOMACAO/
-    ├── IOT/
-    ├── SEGURANCA/
-    ├── TESTES/
-    └── ROADMAP.md
+```text
+ZABBIX_MONITOR/
+├── README.md
+├── DOCUMENTACAO_CONSOLIDADA.md
+├── GOVERNANCA/
+│   ├── PRINCIPIOS.md
+│   └── DECISOES_ARQUITETURA.md
+├── DOCUMENTACAO/
+│   ├── INFRAESTRUTURA.md
+│   ├── ARQUITETURA.md
+│   └── INVENTARIO_SERVICOS.md
+├── INSTALACAO/
+├── CONFIGURACOES/
+├── MONITORIZACAO/
+├── ALERTAS/
+├── AUTOMACAO/
+├── IOT/
+├── SEGURANCA/
+├── TESTES/
+└── ROADMAP.md
+```
 
-A estrutura deve crescer conforme surjam artefactos reais. Evitar diretórios vazios sem finalidade e não copiar segredos, dumps de produção ou logs sensíveis para o Git.
+Criar diretórios apenas quando houver conteúdo ou um plano concreto de utilização. Não colocar no repositório logs integrais de produção, credenciais ou ficheiros com dados sensíveis.
 
-## 12. Decisões e orientação já estabelecidas
+## 12. Decisões e orientações consolidadas
 
-1. O projeto tem como nome ZABBIX_MONITOR.
-2. O Zabbix é o núcleo de monitorização pretendido.
-3. Existe uma máquina/servidor Ubuntu que serve de base ao trabalho.
-4. A prioridade inicial é documentar e reconhecer a infraestrutura real antes de ampliar a arquitetura.
-5. Ferramentas adicionais devem complementar o núcleo, não ser instaladas sem justificação.
-6. O projeto deve ser modular, escalável, documentado e adequado a uma futura demonstração empresarial.
-7. O estado de execução dos serviços deve ser separado da validação funcional.
-8. O repositório GitHub é o ponto de controlo de versão e documentação do projeto.
+1. O projeto chama-se **ZABBIX_MONITOR**.
+2. O Zabbix é o componente central pretendido.
+3. O projeto parte de uma máquina/servidor Ubuntu real, segundo confirmação do utilizador.
+4. A prioridade imediata é reconhecer e documentar o estado real antes de modificar serviços.
+5. Grafana, Postfix, Mailgun, n8n, Docker e IoT devem ser integrados apenas quando houver requisito e teste.
+6. A stack ChirpStack/MQTT precisa de validação ponta a ponta; contentores Running não bastam.
+7. Os dados de conversas antigas devem ser datados e tratados como históricos até nova confirmação.
+8. O GitHub é o ponto de controlo de versão para documentação, decisões e evidências sanitizadas.
+9. A prontidão empresarial depende de testes, segurança, backup/restauro e procedimentos operacionais demonstrados.
 
-## 13. Pendências prioritárias
+## 13. Critério de prontidão para produção
 
-- [ ] Criar e manter um README.md na raiz.
-- [ ] Recolher novamente o inventário atual do servidor Ubuntu.
-- [ ] Confirmar versões e estado atual do Zabbix Server, Agent, frontend e base de dados.
-- [ ] Verificar a configuração atual da porta 10050 e dos hosts autorizados.
-- [ ] Capturar a lista completa dos contentores, redes, volumes e portas Docker.
-- [ ] Diagnosticar a origem do conflito histórico da porta MQTT 1883 e confirmar o estado atual.
-- [ ] Confirmar quais os componentes efetivamente integrados: email, Grafana, n8n, MQTT e ChirpStack.
-- [ ] Executar e registar um teste de alerta de ponta a ponta.
-- [ ] Definir e testar backup e restauro.
-- [ ] Avaliar proteção do ramo main e automatização de validações.
-- [ ] Só depois promover componentes para estado VALIDADO.
-
-As caixas permanecem por marcar até haver evidência atual correspondente.
-
-## 14. Critério de conclusão do projeto
-
-O ZABBIX_MONITOR não deve ser considerado pronto para produção apenas por ter o Zabbix instalado ou serviços ativos. A prontidão exige, pelo menos:
+O projeto não será considerado pronto para produção apenas por ter serviços instalados ou contentores em execução. É necessário demonstrar:
 
 - Inventário e arquitetura atualizados.
-- Monitorização ponta a ponta demonstrada.
-- Alertas entregues e testados.
-- Controlo de acessos e segredos.
+- Monitorização ponta a ponta.
+- Alertas entregues e auditáveis.
+- Gestão segura de acessos e segredos.
 - Backup e restauro verificados.
-- Logs e procedimentos operacionais.
+- Logs e procedimentos de operação.
 - Testes de falha e recuperação proporcionais ao risco.
-- Documentação e alterações rastreáveis.
-- Limitações conhecidas e responsabilidades operacionais definidas.
+- Alterações rastreáveis e possibilidade de rollback.
+- Limitações, dependências e responsabilidades documentadas.
 
-## 15. Registo de consolidação
+## 14. Registo e limites desta consolidação
 
-Esta versão consolida o contexto recuperável das conversas anteriores e a inspeção do repositório realizada em 24 de outubro de 2026. Não substitui uma auditoria direta e atual ao servidor. As referências a versões, portas, contentores e configurações históricas devem ser revalidadas antes de executar alterações.
+Esta versão foi preparada em **24 de outubro de 2026** a partir do histórico recuperável de conversas e da inspeção do repositório. Inclui datas de chats conhecidos — 21-05-2025, 02-06-2025, 22-06-2025, 09-07-2025, 12-07-2025, 12-08-2025, 19-08-2025, 11-10-2025, 30-10-2025, 23-02-2026 e 24-10-2026.
 
-**Próxima ação técnica recomendada:** recolher um snapshot atual do servidor e reconciliá-lo com as secções 5, 6 e 13 antes de instalar, remover ou reconfigurar qualquer componente.
+As datas identificam sessões ou registos de conversa disponíveis; não são necessariamente datas de execução de cada ação mencionada. A ausência de uma data ou detalhe significa que não foi possível recuperá-lo com segurança, e não que o trabalho nunca tenha ocorrido.
+
+**Próxima ação recomendada:** recolher o estado atual do servidor, comparar com a linha do tempo e converter cada pendência numa tarefa com responsável, evidência, critério de aceitação e data de validação.
