@@ -572,3 +572,57 @@ Esta versão foi preparada em **24 de outubro de 2026** a partir do histórico r
 As datas identificam sessões ou registos de conversa disponíveis; não são necessariamente datas de execução de cada ação mencionada. A ausência de uma data ou detalhe significa que não foi possível recuperá-lo com segurança, e não que o trabalho nunca tenha ocorrido.
 
 **Próxima ação recomendada:** recolher o estado atual do servidor, comparar com a linha do tempo e converter cada pendência numa tarefa com responsável, evidência, critério de aceitação e data de validação.
+
+
+## 13. Reconciliação documental com a Máquina 02 — 24 de outubro de 2026
+
+### 13.1 Resultado da comparação inicial
+
+Foi feita uma reconciliação documental entre o histórico recuperado deste projeto e os registos disponíveis sobre a Máquina 02. Esta etapa **não equivale a uma verificação ao vivo do servidor**: não existe, nesta sessão, um canal de execução remota autorizado para consultar o Ubuntu diretamente.
+
+| Área | Linha de base histórica | Verificação necessária | Estado |
+|---|---|---|---|
+| Sistema operativo | Ubuntu Server reportado | Recolher versão, kernel e hostname atuais | PENDENTE |
+| Zabbix Server/Agent | Ambos reportados como serviços existentes/ativos num snapshot anterior | Estado systemd, versões dos pacotes e portas | PENDENTE |
+| Apache, MySQL/MariaDB, PostgreSQL, Redis, BIND, Dovecot e Postfix | Serviços referidos em diferentes momentos; nem todos têm confirmação no mesmo snapshot | Distinguir instalado, ativo e efetivamente utilizado | PENDENTE |
+| Docker/Compose | Projeto `chirpstack-docker` e serviços ChirpStack, Mosquitto, PostgreSQL e Redis reportados | Estado atual dos contentores, projetos Compose e portas publicadas | PENDENTE |
+| Rede e firewall | Portas históricas 10050, 1883, 3001, 8080, 8090 e 1700 mencionadas | Recolher listeners atuais e estado do UFW, se instalado | PENDENTE |
+| Alertas de email | Procedimentos Postfix/Mailgun/n8n discutidos; entrega ponta a ponta não comprovada | Executar teste controlado e verificar evento, ação, logs e receção | PENDENTE |
+| Inventário de Máquina 02 | PR [#13 em API_CARLOS](https://github.com/carlos-andrade/API_CARLOS/pull/13) consultada; estado aberto, não integrado | Rever a PR, validar evidências e obter aprovação antes de a integrar | EM REVISÃO |
+
+### 13.2 Ferramenta de recolha de evidências
+
+Foi adicionado o script [`scripts/auditoria_estado_servidor.sh`](https://github.com/carlos-andrade/ZABBIX_MONITOR/blob/main/scripts/auditoria_estado_servidor.sh). O script é de leitura: não instala software, não reinicia serviços e não modifica ficheiros de configuração. Recolhe identificação do sistema, recursos, estado de serviços, versões de pacotes, contentores/Compose, portas em escuta e estado do UFW quando disponível.
+
+Executar no Ubuntu, a partir de uma cópia atualizada do repositório:
+
+```bash
+bash scripts/auditoria_estado_servidor.sh 2>&1 | tee auditoria_maquina_02.txt
+```
+
+Se o acesso ao Docker exigir privilégios, executar a recolha com permissões administrativas:
+
+```bash
+sudo bash scripts/auditoria_estado_servidor.sh 2>&1 | tee auditoria_maquina_02.txt
+```
+
+O segundo comando cria o ficheiro de relatório no diretório atual. Antes de partilhar a saída, rever endereços IP, nomes internos e outros dados de infraestrutura. Não partilhar credenciais, tokens, ficheiros `.env`, chaves privadas ou configurações completas que contenham segredos. O script não lê intencionalmente esses conteúdos.
+
+### 13.3 Critérios de reconciliação
+
+Quando a saída for recolhida, cada componente deve ser classificado separadamente:
+
+- **INSTALADO:** pacote ou imagem identificada.
+- **ATIVO:** serviço ou contentor em execução no instante da recolha.
+- **A ESCUTAR:** porta observada em estado de escuta.
+- **FUNCIONAL:** teste de aplicação executado com resultado esperado.
+- **INTEGRADO:** teste de ponta a ponta confirma a ligação entre componentes.
+- **SEGURO/OPERACIONAL:** controlos de acesso, atualizações, backups, recuperação e monitorização foram verificados com evidências.
+
+Não promover um componente de um estado para o seguinte apenas com base na presença de um pacote ou num contentor em execução. Não parar, atualizar, reconfigurar ou expor serviços como parte desta auditoria inicial.
+
+### 13.4 Benefícios esperados após a recolha
+
+A reconciliação permitirá eliminar suposições antigas, identificar serviços que já não existem ou que foram adicionados, detetar divergências de versões e portas, priorizar pendências reais e construir uma linha de base verificável para futuras alterações. Também permitirá distinguir claramente a existência física/lógica do servidor da prova de funcionamento e integração de cada serviço.
+
+**Estado global da reconciliação: PARCIAL — documentação histórica confrontada; verificação ao vivo pendente da execução do script e análise do relatório.**
